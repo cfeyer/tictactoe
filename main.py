@@ -1,3 +1,20 @@
+class PlayerAgent:
+
+    def __init__(self, name):
+        self.name = name
+
+    def notify_other_players_move(self, r, c):
+        print(f'{self.name}: I see the other player marked ({r},{c}).')
+
+    def request_move(self):
+        print(f'{self.name}:')
+        r = input('Row: ')
+        c = input('Col: ')
+        return (int(r),int(c))
+
+    def notify_game_over(self, outcome):
+        print(f'{self.name}: I {outcome}!')
+
 class Board:
     def __init__(self):
         self.spaces = [[' ', ' ', ' '],
@@ -48,21 +65,29 @@ class Board:
 def main():
     board = Board()
 
+    player_x = PlayerAgent('Alice')
+    player_o = PlayerAgent('Bob')
+
     mark = 'x'
+    current_player = player_x
+    other_player = player_o
+
     board.print()
+    print('')
+
     while not board.is_full():
-        print(f"{mark}'s turn")
-        print('')
-        row = int(input('row: '))
-        col = int(input('col: '))
-        print('')
-        board.set(row, col, mark)
+        (r, c) = current_player.request_move()
+        board.set(r, c, mark)
+        other_player.notify_other_players_move(r, c)
         board.print()
-        print('')
         winner = board.find_winner()
         if winner:
             print(f'{winner} won')
+            current_player.notify_game_over('win')
+            other_player.notify_game_over('lose')
             break
+
+        (current_player, other_player) = (other_player, current_player)
         mark = 'o' if mark == 'x' else 'x'
 
 main()
