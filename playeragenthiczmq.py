@@ -5,7 +5,7 @@ from playeragentproxyzmq import AgentHalf as PlayerAgentProxyForZmq
 
 def main():
     zmq_context = zmq.Context()
-    agent = HumanInteractiveConsolePlayerAgent()
+    agent = HumanInteractiveConsolePlayerAgent(input('Name: '))
     proxy = PlayerAgentProxyForZmq(agent, zmq_context, 'localhost', '5555')
     proxy.run()
 

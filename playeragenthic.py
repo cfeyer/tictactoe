@@ -5,9 +5,9 @@ from playeragentinterface import PlayerAgentInterface
 
 class HumanInteractiveConsolePlayerAgent(PlayerAgentInterface):
 
-    def __init__(self):
+    def __init__(self, name):
         self.board = Board()
-        self.name = input('Name: ') 
+        self.name = name
 
     def request_player_name(self):
         return self.name

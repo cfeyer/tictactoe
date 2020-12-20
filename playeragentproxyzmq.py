@@ -10,33 +10,42 @@ def deserialize(somebytes):
     barray = bytearray(somebytes)
     return json.loads(barray.decode(encoding='utf-8'))
 
+def send_obj(socket, obj):
+    msg = serialize(obj)
+    print(f'Sending: {msg}')
+    socket.send(msg)
+
+def recv_obj(socket):
+    msg = socket.recv()
+    print(f'Received: {msg}')
+    return deserialize(msg)
+
 class ServerHalf(PlayerAgentInterface):
 
     def __init__(self, agent_rpc_socket):
-        self.agent_rpc_socket = agent_rpc_socket
+        self.socket = agent_rpc_socket
 
     def request_player_name(self):
         request = {'request': 'request_player_name'}
-        self.agent_rpc_socket.send(serialize(request))
-        response = deserialize(self.agent_rpc_socket.recv())
-        return response['player_name']
+        send_obj(self.socket, request)
+        return recv_obj(self.socket)['player_name']
 
     def request_agent_description(self):
-        self.agent_rpc_socket.send(serialize({'request': 'request_agent_description'}))
-        return deserialize(self.agent_rpc_socket.recv())['agent_description']
+        send_obj(self.socket, {'request': 'request_agent_description'})
+        return recv_obj(self.socket)['agent_description']
 
     def notify_other_players_move(self, r, c):
-        self.agent_rpc_socket.send(serialize({'request': 'notify_other_players_move', 'row': str(r), 'column': str(c)}))
-        self.agent_rpc_socket.recv()
+        send_obj(self.socket, {'request': 'notify_other_players_move', 'row': str(r), 'column': str(c)})
+        self.socket.recv()
 
     def request_move(self):
-        self.agent_rpc_socket.send(serialize({'request': 'request_move'}))
-        response_obj = deserialize(self.agent_rpc_socket.recv())
+        send_obj(self.socket, {'request': 'request_move'})
+        response_obj = recv_obj(self.socket)
         return (int(response_obj['row']), int(response_obj['column']))
 
     def notify_game_over(self, outcome):
-        self.agent_rpc_socket.send(serialize({'request': 'notify_game_over', 'outcome': outcome}))
-        self.agent_rpc_socket.recv()
+        send_obj(self.socket, {'request': 'notify_game_over', 'outcome': outcome})
+        self.socket.recv()
 
 class ServerHalfFactory(PlayerAgentFactoryInterface):
 
@@ -92,10 +101,8 @@ class AgentHalf(PlayerAgentInterface):
         with self.agent_rpc_socket.connect(agent_rpc_address):
             print('Agent connected.')
             while True:
-                request = self.agent_rpc_socket.recv()
-                print(f'Received: {request}')
-                request_obj = deserialize(request)
-                request_name = request_obj['request']
+                request_obj = recv_obj(self.agent_rpc_socket)
+                request_name = str(request_obj['request'])
                 if request_name == 'request_player_name':
                     self.request_player_name()
                 elif request_name == 'request_agent_description':
@@ -108,14 +115,14 @@ class AgentHalf(PlayerAgentInterface):
                     self.notify_game_over(request_obj['outcome'])
                     break
                 else:
-                    self.agent_rpc_socket.send(b'Not implemented')
+                    send_obj(self.agent_rpc_socket, {'request_not_implemented': request_name})
         self.agent_rpc_socket = None
 
     def request_player_name(self):
-        self.agent_rpc_socket.send(serialize({'player_name': self.agent.request_player_name()}))
+        send_obj(self.agent_rpc_socket, {'player_name': str(self.agent.request_player_name())})
 
     def request_agent_description(self):
-        self.agent_rpc_socket.send(serialize({'agent_description': self.agent.request_agent_description()}))
+        send_obj(self.agent_rpc_socket, {'agent_description': str(self.agent.request_agent_description())})
 
     def notify_other_players_move(self, r, c):
         self.agent.notify_other_players_move(r, c)
@@ -123,7 +130,7 @@ class AgentHalf(PlayerAgentInterface):
 
     def request_move(self):
         (row, column) = self.agent.request_move()
-        self.agent_rpc_socket.send(serialize({'row': row, 'column': column}))
+        send_obj(self.agent_rpc_socket, {'row': str(row), 'column': str(column)})
 
     def notify_game_over(self, outcome):
         self.agent.notify_game_over(outcome)
