@@ -22,3 +22,9 @@ class PlayerAgentInterface(ABC):
     def notify_game_over(self, outcome):
         pass
 
+class PlayerAgentFactoryInterface(ABC):
+
+    @abstractmethod
+    def make_player_agent(self):
+        pass
+
