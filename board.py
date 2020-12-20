@@ -1,3 +1,5 @@
+# Copyright 2020 by Chris Feyerchak and distributed under the GPL v2 license; see 'license.txt'.
+
 class Board:
     def __init__(self):
         self.spaces = [[' ', ' ', ' '],
