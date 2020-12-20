@@ -49,10 +49,10 @@ class ServerHalf(PlayerAgentInterface):
 
 class ServerHalfFactory(PlayerAgentFactoryInterface):
 
-    def __init__(self, zmq_context, bind_interface, bind_tcp_port):
+    def __init__(self, zmq_context, bind_address):
         self.zmq_context = zmq_context
-        self.bind_interface = bind_interface
-        self.bind_tcp_port = bind_tcp_port
+        self.bind_interface = bind_address.split(':')[0]
+        self.bind_tcp_port = bind_address.split(':')[-1]
 
         address = f'tcp://{self.bind_interface}:{self.bind_tcp_port}'
         print(f'Server binding to {address}...')
@@ -76,11 +76,11 @@ class ServerHalfFactory(PlayerAgentFactoryInterface):
 
 class AgentHalf(PlayerAgentInterface):
 
-    def __init__(self, agent, zmq_context, server_host, server_port):
+    def __init__(self, agent, zmq_context, server_addr):
         self.agent = agent
         self.zmq_context = zmq_context
-        self.server_host = server_host
-        self.server_port = server_port
+        self.server_host = server_addr.split(':')[0]
+        self.server_port = server_addr.split(':')[-1]
         self.agent_rpc_socket = None
 
     def run(self):
@@ -88,7 +88,6 @@ class AgentHalf(PlayerAgentInterface):
         join_address = f'tcp://{self.server_host}:{self.server_port}'
         print(f'Agent connecting to {join_address}...')
         with join_socket.connect(join_address):
-            print('Agent connected.')
             join_socket.send(b'')
             response = join_socket.recv()
             print(f'Agent received join response: {response}')
@@ -99,7 +98,6 @@ class AgentHalf(PlayerAgentInterface):
         agent_rpc_address = f'tcp://{self.server_host}:{agent_port}'
         print(f'Agent conecting to {agent_rpc_address}...')
         with self.agent_rpc_socket.connect(agent_rpc_address):
-            print('Agent connected.')
             while True:
                 request_obj = recv_obj(self.agent_rpc_socket)
                 request_name = str(request_obj['request'])
