@@ -138,12 +138,14 @@ class Game:
 def main():
 
     player_factory = InteractiveConsolePlayerAgentFactory()
-    
-    player_1 = player_factory.make_player_agent()
-    player_2 = player_factory.make_player_agent()
 
-    game = Game(player_1, player_2)
-    game.play()
+    while True:
+    
+        player_1 = player_factory.make_player_agent()
+        player_2 = player_factory.make_player_agent()
+
+        game = Game(player_1, player_2)
+        game.play()
 
 
 main()
