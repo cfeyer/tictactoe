@@ -3,6 +3,14 @@ from abc import ABC, abstractmethod
 class PlayerAgentInterface(ABC):
 
     @abstractmethod
+    def request_player_name(self):
+        pass
+
+    @abstractmethod
+    def request_agent_description(self):
+        pass
+
+    @abstractmethod
     def notify_other_players_move(self, r, c):
         pass
 
@@ -19,6 +27,12 @@ class InteractiveConsolePlayerAgent(PlayerAgentInterface):
 
     def __init__(self, name):
         self.name = name
+
+    def request_player_name(self):
+        return 'John Doe'
+
+    def request_agent_description(self):
+        return f'{self.__class__.__name__ } by Chris Feyerchak'
 
     def notify_other_players_move(self, r, c):
         print(f'{self.name}: I see the other player marked ({r},{c}).')
@@ -107,6 +121,8 @@ class Game:
         mark = 'x'
         current_player = self.player_x
         other_player = self.player_o
+
+        print(f'{current_player.request_player_name()} ({current_player.request_agent_description()}) vs {other_player.request_player_name()} ({other_player.request_agent_description()})')
    
         board = Board()
         board.print()
@@ -121,7 +137,7 @@ class Game:
             board.print()
             winner = board.find_winner()
             if winner:
-                print(f'{winner} won')
+                print(f'{current_player.request_player_name()} ({current_player.request_agent_description()}) defeated {other_player.request_player_name()} ({other_player.request_agent_description()})')
                 current_player.notify_game_over('win')
                 other_player.notify_game_over('lose')
                 is_game_won = True
